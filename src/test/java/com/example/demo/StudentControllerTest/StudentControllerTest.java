@@ -3,126 +3,146 @@ package com.example.demo.StudentControllerTest;
 
 import com.example.demo.StudentController.StudentController;
 
+import com.example.demo.StudentRepository.StudentRepository;
+import com.example.demo.StudentService.StudentService;
 import com.example.demo.entity.Student;
-import org.junit.Assert;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.MockitoAnnotations;
-import org.mockito.junit.jupiter.MockitoExtension;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.web.server.LocalServerPort;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.http.MediaType;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
-import java.net.URI;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+
+
+import javax.persistence.EntityManager;
 import java.net.URISyntaxException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.NoSuchElementException;
+import java.util.*;
 
-@ExtendWith(MockitoExtension.class)
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.hasItem;
+import static sun.plugin2.util.PojoUtil.toJson;
+
+@ExtendWith(SpringExtension.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
+@AutoConfigureMockMvc
 class StudentControllerTest {
 
-
-    @InjectMocks
+    @Autowired
     StudentController controller;
-    @LocalServerPort
-    int randomServerPort;
+    @Autowired
+    StudentRepository repository;
+    @Autowired
+    StudentService service;
+    @Autowired
+    private MockMvc mockMvc;
+    @Autowired
+    EntityManager entityManager;
 
+    private Student student;
+
+    public static Student createEntity() {
+        Student student = new Student(5, "faria", "ali", "fariya@mail.com");
+        return student;
+    }
 
     @BeforeEach
     void setUp() {
-        MockitoAnnotations.initMocks(this);
-        controller = new StudentController();
+        student = createEntity();
     }
 
     @Test
-    void shouldListStudents() throws URISyntaxException {
-        RestTemplate restTemplate = new RestTemplate();
+    void shouldListStudents() throws Exception {
+        //initializing database
+        repository.saveAndFlush(student);
+        mockMvc.perform(MockMvcRequestBuilders
+                .get("/students")
+                .accept(MediaType.APPLICATION_JSON))
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.[*].id").value(hasItem(student.getId())))
+                .andExpect(jsonPath("$.[*].firstName").value(hasItem(student.getFirstName())))
+                .andExpect(jsonPath("$.[*].lastName").value(hasItem(student.getLastName())))
+                .andExpect(jsonPath("$.[*].email").value(hasItem(student.getEmail())));
 
-        final String baseUrl = "http://localhost:" + randomServerPort + "/students";
-        URI uri = new URI(baseUrl);
-
-        ResponseEntity<String> result = restTemplate.getForEntity(uri, String.class);
-        //Verify request succeed
-        
-        Assert.assertEquals(200, result.getStatusCodeValue());
-        Assert.assertEquals(true, result.hasBody());
     }
 
     @Test
-    void shouldGetStudentById() throws URISyntaxException {
-        RestTemplate restTemplate = new RestTemplate();
-
-        final String baseUrl = "http://localhost:" + randomServerPort + "/students/{id}";
-        try{
-        Map<String, Integer> params = new HashMap<>();
-        params.put("id", 1);
-        Student getStudent = restTemplate.getForObject(baseUrl,Student.class,params);
-        Assert.assertNotNull("Successfully get student by Id",getStudent);
-    }
-        catch (NoSuchElementException exception)
-        {
-            exception.printStackTrace();
-        }
+    void shouldGetStudentById() throws Exception {
+        //initializing database
+        repository.saveAndFlush(student);
+        mockMvc.perform(MockMvcRequestBuilders
+                .get("/students/{id}",student.getId())
+                .accept(MediaType.APPLICATION_JSON))
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(student.getId()))
+                .andExpect(jsonPath("$.firstName").value(student.getFirstName()))
+                .andExpect(jsonPath("$.lastName").value((student.getLastName())))
+                .andExpect(jsonPath("$..email").value((student.getEmail())));
     }
 
     @Test
-    void shouldAddStudent() {
-        RestTemplate restTemplate = new RestTemplate();
+    void shouldAddStudent() throws Exception {
 
-        final String baseUrl = "http://localhost:" + randomServerPort + "/students";
-        try{
+        int databaseSizeBeforeAdd = repository.findAll().size();
 
-            Student newStudent = new Student(4,"Ahmed","sheikh","as@mail.com");
-            Student addStudent = restTemplate.postForObject(baseUrl,newStudent,Student.class);
-            Assert.assertNotNull("New student added",addStudent);
-        }
-        catch (NoSuchElementException exception)
-        {
-            exception.printStackTrace();
-        }
+        repository.saveAndFlush(student);
+
+        mockMvc.perform(MockMvcRequestBuilders
+                .post("/students")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(toJson(student)))
+                .andExpect(status().isOk());
+        List<Student> students = repository.findAll();
+        assertThat(students).hasSize(databaseSizeBeforeAdd+1);
     }
 
 
     @Test
-    void shouldDeleteStudentById() {
-        RestTemplate restTemplate = new RestTemplate();
+    void shouldDeleteStudentById() throws Exception {
+        // initialize database
+        repository.saveAndFlush(student);
+        //database size before delete
+        int databaseSizeBeforeDelete = repository.findAll().size();
 
-        final String baseUrl = "http://localhost:" + randomServerPort + "/students/{id}";
-        try{
-            Map<String, Integer> params = new HashMap<>();
-            params.put("id", 4);
-            restTemplate.delete(baseUrl,params);
+        //delete a student
+        mockMvc.perform(MockMvcRequestBuilders
+                .delete("/students/{id}",student.getId())
+                .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk());
 
-        }
-        catch (NoSuchElementException exception)
-        {
-            exception.printStackTrace();
-        }
+        List<Student> list = repository.findAll();
+        assertThat(list).hasSize(databaseSizeBeforeDelete-1);
+
     }
 
     @Test
-    void shouldUpdate() {
+    void shouldUpdate() throws Exception {
+        //initialize database
+        repository.saveAndFlush(student);
+        // database size
+        int databaseSizeBeforeUpdate = repository.findAll().size();
+        //update the object
+        Student updatedStudent = repository.findById(student.getId()).get();
+        updatedStudent.setId(5);
+        updatedStudent.setFirstName("Fariha");
+        updatedStudent.setLastName("ali");
+        updatedStudent.setEmail("Fariha@mail.com");
+        repository.saveAndFlush(updatedStudent);
+        mockMvc.perform(put("/students/{id}",updatedStudent.getId())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(toJson(updatedStudent)))
+                .andExpect(status().isOk());
 
-        RestTemplate restTemplate = new RestTemplate();
-        final String baseUri = "http://localhost:" + randomServerPort + "/students/{id}";
-        try {
-            Map<String, Integer> params = new HashMap<>();
-            params.put("id", 2);
-
-            Student updatedStudent = new Student(2,"New", "name", "test@email.com");
-            Student student = restTemplate.getForObject(baseUri,Student.class,params);
-            Assert.assertEquals("student updated",student.getId(),updatedStudent.getId());
-            restTemplate.put(baseUri,updatedStudent,params);
-
-        }
-        catch (NoSuchElementException exception)
-        {
-            exception.printStackTrace();
-        }
+        List<Student> list = repository.findAll();
+        assertThat(list).hasSize(databaseSizeBeforeUpdate);
     }
 }
