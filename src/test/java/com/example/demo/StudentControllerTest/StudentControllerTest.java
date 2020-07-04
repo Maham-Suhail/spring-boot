@@ -22,6 +22,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
+import static com.example.demo.StudentControllerTest.TestUtil.convertObjectToJsonBytes;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -31,7 +32,6 @@ import java.util.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.hasItem;
-import static sun.plugin2.util.PojoUtil.toJson;
 
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
@@ -116,7 +116,7 @@ class StudentControllerTest {
         mockMvc.perform(MockMvcRequestBuilders
                 .post("/students")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(toJson(student)))
+                .content(convertObjectToJsonBytes(student)))
                 .andExpect(status().isOk());
         List<Student> students = repository.findAll();
         assertThat(students).hasSize(databaseSizeBeforeAdd+1);
@@ -157,7 +157,7 @@ class StudentControllerTest {
         repository.saveAndFlush(updatedStudent);
         mockMvc.perform(put("/students/{id}",updatedStudent.getId())
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(toJson(updatedStudent)))
+                .content(convertObjectToJsonBytes(updatedStudent)))
                 .andExpect(status().isOk());
 
         List<Student> list = repository.findAll();
@@ -190,7 +190,7 @@ class StudentControllerTest {
         mockMvc.perform(MockMvcRequestBuilders
                 .post("/students/courses")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(toJson(course)))
+                .content(convertObjectToJsonBytes(course)))
                 .andExpect(status().isOk());
 
         List<Course> courses = courseRepository.findAll();
@@ -249,7 +249,7 @@ class StudentControllerTest {
 
         mockMvc.perform(put("/students/courses/{id}",updatedCourse.getId())
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(toJson(updatedCourse)))
+                        .content(convertObjectToJsonBytes(updatedCourse)))
                         .andExpect(status().isOk());
 
         List<Course> list = courseRepository.findAll();
