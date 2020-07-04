@@ -10,6 +10,7 @@ import java.util.List;
 
 @Service
 public class StudentService {
+
     @Autowired
     private StudentRepository repository;
 
@@ -27,4 +28,6 @@ public class StudentService {
     public void delete(Integer id){
         repository.deleteById(id);
     }
+
+
 }
