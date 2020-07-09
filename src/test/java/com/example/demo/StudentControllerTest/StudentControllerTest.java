@@ -66,13 +66,16 @@ class StudentControllerTest {
     }
 
     @BeforeEach
-    void setUp() {
+    public void setUp() {
         student = createEntity();
+        System.out.print("course Entity created");
         course = createCourseEntity();
     }
-
-
-
+    @AfterEach
+    public void removeData() {
+        repository.delete(student);
+        courseRepository.delete(course);
+    }
     @Test
     void shouldListStudents() throws Exception {
         //initializing database
@@ -86,7 +89,7 @@ class StudentControllerTest {
                 .andExpect(jsonPath("$.[*].firstName").value(hasItem(student.getFirstName())))
                 .andExpect(jsonPath("$.[*].lastName").value(hasItem(student.getLastName())))
                 .andExpect(jsonPath("$.[*].email").value(hasItem(student.getEmail())));
-        deleteStudent(student);
+
 
     }
 
@@ -103,7 +106,8 @@ class StudentControllerTest {
                 .andExpect(jsonPath("$.firstName").value(student.getFirstName()))
                 .andExpect(jsonPath("$.lastName").value((student.getLastName())))
                 .andExpect(jsonPath("$.email").value((student.getEmail())));
-        deleteStudent(student);
+
+
     }
 
     @Test
@@ -120,7 +124,7 @@ class StudentControllerTest {
                 .andExpect(status().isOk());
         List<Student> students = repository.findAll();
         assertThat(students).hasSize(databaseSizeBeforeAdd+1);
-        deleteStudent(student);
+
     }
 
 
@@ -162,13 +166,14 @@ class StudentControllerTest {
 
         List<Student> list = repository.findAll();
         assertThat(list).hasSize(databaseSizeBeforeUpdate);
-        deleteStudent(student);
+
     }
 
     @Test
     void shouldfindAllCourses() throws Exception {
 
         courseRepository.saveAndFlush(course);
+
         mockMvc.perform(MockMvcRequestBuilders
                 .get("/students/courses")
                 .accept(MediaType.APPLICATION_JSON))
@@ -178,14 +183,13 @@ class StudentControllerTest {
                 .andExpect(jsonPath("$.[*].name").value(hasItem(course.getName())))
                 .andExpect(jsonPath("$.[*].creditHour").value(hasItem(course.getCreditHour())));
 
-        System.out.print(courseRepository.findAll());
-        deleteCourse(course);
     }
 
     @Test
     void shouldAddCourse() throws Exception {
 
         int databaseSizeBeforeAdd = courseRepository.findAll().size();
+
         courseRepository.saveAndFlush(course);
         mockMvc.perform(MockMvcRequestBuilders
                 .post("/students/courses")
@@ -196,15 +200,12 @@ class StudentControllerTest {
         List<Course> courses = courseRepository.findAll();
         assertThat(courses).hasSize(databaseSizeBeforeAdd+1);
         System.out.print(courseRepository.findAll());
-        deleteCourse(course);
-
     }
 
     @Test
     void shouldGetCoursebyId() throws Exception {
 
         courseRepository.saveAndFlush(course);
-
         mockMvc.perform(MockMvcRequestBuilders
                 .get("/students/courses/{id}",course.getId())
                 .accept(MediaType.APPLICATION_JSON))
@@ -213,10 +214,6 @@ class StudentControllerTest {
                 .andExpect(jsonPath("$.id").value(course.getId()))
                 .andExpect(jsonPath("$.name").value(course.getName()))
                 .andExpect(jsonPath("$.creditHour").value(course.getCreditHour()));
-          System.out.print(courseRepository.findById(course.getId()).get());
-
-          deleteCourse(course);
-
     }
 
     @Test
@@ -230,7 +227,6 @@ class StudentControllerTest {
                 .andExpect(status().isOk());
         List<Course> courses = courseRepository.findAll();
         assertThat(courses).hasSize(databaseSizeBeforeDelete-1);
-        System.out.print(courseRepository.findAll());
     }
 
     @Test
@@ -251,18 +247,9 @@ class StudentControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(convertObjectToJsonBytes(updatedCourse)))
                         .andExpect(status().isOk());
-
         List<Course> list = courseRepository.findAll();
-        System.out.print(list);
         assertThat(list).hasSize(databaseSizebeforeupdate);
     }
 
-    private void deleteStudent(Student student)
-    {
-        repository.delete(student);
-    }
-    private void deleteCourse(Course course)
-    {
-        courseRepository.delete(course);
-    }
+
 }

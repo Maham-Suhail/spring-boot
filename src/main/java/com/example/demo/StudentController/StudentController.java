@@ -21,75 +21,88 @@ public class StudentController {
     private CourseService courseService;
 
     @GetMapping("/students")
-    public List<Student> list(){
-       return service.findAll();
+    public List<Student> list() {
+        return service.findAll();
     }
+
     @GetMapping("/students/{id}")
-    public ResponseEntity<Student> get(@PathVariable Integer id){
-        try{
+    public ResponseEntity<Student> get(@PathVariable Integer id) {
+        try {
             Student student = service.get(id);
-            return new ResponseEntity<Student>(student,HttpStatus.OK);
-        }catch (NoSuchElementException exception)
-        {
+            return new ResponseEntity<Student>(student, HttpStatus.OK);
+        } catch (NoSuchElementException exception) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
     }
+
     @PostMapping("/students")
-    public void add(@RequestBody Student student){
+    public void add(@RequestBody Student student) {
         service.save(student);
     }
+
     @DeleteMapping("/students/{id}")
     public void delete(@PathVariable Integer id) {
         service.delete(id);
     }
+
     @PutMapping("/students/{id}")
-    public ResponseEntity<?> update(@RequestBody Student student,@PathVariable Integer id){
-        try{
-            service.save(student);
+    public ResponseEntity<?> update(@RequestBody Student student, @PathVariable Integer id) {
+        try {
+            if(service.getById(id) == true)
+            {
+                Student updatedStudent = service.get(id);
+                updatedStudent.setId(student.getId());
+                updatedStudent.setFirstName(student.getFirstName());
+                updatedStudent.setLastName(student.getLastName());
+                updatedStudent.setEmail(student.getEmail());
+                service.save(updatedStudent);
+            }
             return new ResponseEntity<>(HttpStatus.OK);
-        }catch (NoSuchElementException exception)
-        {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        } catch (NoSuchElementException exception) {
+            return new ResponseEntity<>(HttpStatus.OK);
         }
 
     }
+
     @GetMapping("/students/courses")
-    public List<Course> findAll()
-    {
+    public List<Course> findAll() {
         return courseService.findAll();
     }
 
     @PostMapping("/students/courses")
-    public void add(@RequestBody Course course)
-    {
+    public void add(@RequestBody Course course) {
         courseService.save(course);
     }
 
     @GetMapping("/students/courses/{id}")
-    public ResponseEntity<Course> getCourse(@PathVariable Integer id){
-        try{
+    public ResponseEntity<Course> getCourse(@PathVariable Integer id) {
+        try {
             Course course = courseService.get(id);
-            return new ResponseEntity<Course>(course,HttpStatus.OK);
-        }catch (NoSuchElementException exception)
-        {
+            return new ResponseEntity<Course>(course, HttpStatus.OK);
+        } catch (NoSuchElementException exception) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
     }
 
     @DeleteMapping("/students/courses/{id}")
-    public void deleteCourse(@PathVariable Integer id)
-    {
+    public void deleteCourse(@PathVariable Integer id) {
         courseService.delete(id);
     }
+
     @PutMapping("/students/courses/{id}")
-    public ResponseEntity<?> updateCourse(@RequestBody Course course,@PathVariable Integer id)
+    public ResponseEntity<?> updateCourse(@RequestBody Course course, @PathVariable Integer id)
     {
-        try{
+        try {
+            course.setId(id);
             courseService.save(course);
+
             return new ResponseEntity<>(HttpStatus.OK);
-        }catch (NoSuchElementException exception)
-        {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+
         }
+        catch (NoSuchElementException exception) {
+            return new ResponseEntity<>(HttpStatus.OK);
+        }
+
     }
 }
+

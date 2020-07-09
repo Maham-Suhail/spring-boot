@@ -30,4 +30,7 @@ public class StudentService {
     }
 
 
+    public boolean getById(Integer id) {
+        return repository.findById(id).isPresent();
+    }
 }

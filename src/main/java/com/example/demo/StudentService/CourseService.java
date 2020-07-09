@@ -6,6 +6,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
+
 @Service
 public class CourseService {
 
@@ -20,12 +22,28 @@ public class CourseService {
     {
         return repository.findById(id).get();
     }
-    public Course save(Course course)
-    {
-        return repository.save(course);
+    public Course save(Course course) {
+
+        Course updateCourse = null;
+        int id  = course.getId();
+        Optional<Course> updateCourseOp = repository.findById(id);
+        if(updateCourseOp.isPresent())
+        {
+            updateCourse = repository.findById(id).get();
+            updateCourse.setId(course.getId());
+            updateCourse.setName(course.getName());
+            updateCourse.setCreditHour(course.getCreditHour());
+           return repository.save(updateCourse);
+        }
+        else
+        {
+            return repository.save(course);
+        }
     }
+
     public void delete(Integer id)
     {
         repository.deleteById(id);
     }
+
 }
