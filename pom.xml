@@ -85,11 +85,11 @@
 			<scope>test</scope>
 		</dependency>
 		<!--H2 dependency-->
+		<!-- https://mvnrepository.com/artifact/com.h2database/h2 -->
 		<dependency>
 			<groupId>com.h2database</groupId>
 			<artifactId>h2</artifactId>
-			<version>1.4.200</version>
-			<scope>test</scope>
+			<scope>compile</scope>
 		</dependency>
 		<!--configuration dependency-->
 		<dependency>
@@ -101,9 +101,18 @@
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-test</artifactId>
 		</dependency>
+		<!--liquibase dependency-->
+		<dependency>
+			<groupId>org.liquibase</groupId>
+			<artifactId>liquibase-core</artifactId>
+		</dependency>
 
+		<dependency>
+			<groupId>org.liquibase</groupId>
+			<artifactId>liquibase-maven-plugin</artifactId>
+			<version>3.10.0</version>
+		</dependency>
 	</dependencies>
-
 
 	<build>
 		<plugins>
@@ -111,6 +120,24 @@
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
 			</plugin>
+			<!-- https://mvnrepository.com/artifact/org.liquibase/liquibase-maven-plugin -->
+			<plugin>
+				<groupId>org.liquibase</groupId>
+				<artifactId>liquibase-maven-plugin</artifactId>
+				<version>3.10.0</version>
+				<configuration>
+					<propertyFile>src/main/resources/application-controller-properties</propertyFile>
+				</configuration>
+				<executions>
+					<execution>
+					<goals>
+						<goal>clearCheckSums</goal>
+					</goals>
+					</execution>
+				</executions>
+
+			</plugin>
+
 		</plugins>
 	</build>
 
