@@ -1,32 +1,36 @@
 package com.example.demo.entity;
 
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
+
 import javax.persistence.*;
 
 @Entity
 @Table(name = "course")
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class,property = "id")
 public class Course {
 
     @Id
     @GeneratedValue (strategy = GenerationType.IDENTITY)
-    int id;
+    private int course_id;
     @Column(name = "name")
-    String name;
+    private String name;
     @Column(name = "credit_hour")
-    int creditHour;
+    private int creditHour;
 
     public Course(){}
     public Course(int id, String name, int creditHour) {
-        this.id = id;
+        this.course_id = id;
         this.name = name;
         this.creditHour = creditHour;
     }
 
     public int getId() {
-        return id;
+        return course_id;
     }
 
     public void setId(int id) {
-        this.id = id;
+        this.course_id = id;
     }
 
     public String getName() {
@@ -45,12 +49,13 @@ public class Course {
         this.creditHour = creditHour;
     }
 
+
     @Override
     public String toString() {
         return "Course{" +
-                "id=" + id +
+                "course_id=" + course_id +
                 ", name='" + name + '\'' +
-                ", creditHour='" + creditHour + '\'' +
+                ", creditHour=" + creditHour +
                 '}';
     }
 }

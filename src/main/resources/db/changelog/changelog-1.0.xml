@@ -30,6 +30,24 @@
     <changeSet id="changelog-1.3" author="admin">
         <modifyDataType tableName="course" columnName="credit_hour" newDataType="int"/>
     </changeSet>
+    <changeSet id="changelog-1.4" author="admin">
+        <renameColumn tableName="student" oldColumnName="id" newColumnName="student_id"/>
+        <renameColumn tableName="course" oldColumnName="id" newColumnName="course_id"/>
+    </changeSet>
+    <changeSet id = "changelog-1.5" author="admin">
+        <createTable tableName="student_course">
+            <column name="id" type="int" autoIncrement="true">
+                <constraints unique="true" nullable="false" primaryKey="true"/>
+            </column>
+            <column name="stud_id" type="int">
+                <constraints foreignKeyName="stud_id" references="student(student_id)" />
+            </column>
+            <column name="cour_id" type="int">
+                <constraints foreignKeyName="cour_id" references="course(course_id)" />
+            </column>
+        </createTable>
+    </changeSet>
+
 
 
 </databaseChangeLog>

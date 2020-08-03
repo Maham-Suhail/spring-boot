@@ -26,7 +26,7 @@ public class StudentController {
     }
 
     @GetMapping("/students/{id}")
-    public ResponseEntity<Student> get(@PathVariable Integer id) {
+    public ResponseEntity<?> get(@PathVariable Integer id){
         try {
             Student student = service.get(id);
             return new ResponseEntity<Student>(student, HttpStatus.OK);
@@ -50,18 +50,20 @@ public class StudentController {
         try {
             if(service.getById(id) == true)
             {
-                Student updatedStudent = service.get(id);
-                updatedStudent.setId(student.getId());
-                updatedStudent.setFirstName(student.getFirstName());
-                updatedStudent.setLastName(student.getLastName());
-                updatedStudent.setEmail(student.getEmail());
-                service.save(updatedStudent);
+                service.saveUpdate(student);
+                System.out.print(student);
             }
             return new ResponseEntity<>(HttpStatus.OK);
         } catch (NoSuchElementException exception) {
             return new ResponseEntity<>(HttpStatus.OK);
         }
 
+    }
+    @PatchMapping("/students/courses/{id}")
+    public void associateCourse(@RequestBody Student student)
+    {
+        service.addStudent(student);
+        System.out.print(student);
     }
 
     @GetMapping("/students/courses")
